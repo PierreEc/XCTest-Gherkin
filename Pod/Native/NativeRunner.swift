@@ -16,6 +16,7 @@ open class NativeRunner {
                                   scenario: String?,
                                   testCase: XCTestCase,
                                   mapStepDefiner: StepDefiner.Type? = nil) {
+        testCase.state.steps.removeAll()
         testCase.state.loadAllStepsIfNeeded(mapStepDefiner)
 
         let path = Bundle(for: type(of: testCase)).resourceURL?.appendingPathComponent(featureFile)
