@@ -13,7 +13,11 @@ class Language {
     private init() {}
 
     private(set) var vocabulary: [String: [String: [String]]]? = {
-        let bundle = Bundle(for: NativeFeature.self)
+        var bundle = Bundle(for: NativeFeature.self)
+        #if SWIFT_PACKAGE
+            bundle = Bundle.module
+        #endif
+        
         guard let path = bundle.path(forResource: "gherkin-languages", ofType: ".json"),
             let data = FileManager.default.contents(atPath: path),
             let json = (try? JSONSerialization.jsonObject(with: data)) as? [String: [String: [String]]]
@@ -53,12 +57,13 @@ struct Keywords {
     let Feature = Language.current.localized(expression: "feature", default: "Feature", ending: ":")
     let Background = Language.current.localized(expression: "background", default: "Background", ending: ":")
     let Scenario = Language.current.localized(expression: "scenario", default: "Scenario", ending: ":")
-    let ScenarioOutline = Language.current.localized(expression: "scenarioOutline", default: "Scenario Outline", ending: ":")
+    let ScenarioOutline = Language.current.localized(expression: "scenario outline", default: "Scenario Outline", ending: ":")
     let Examples = Language.current.localized(expression: "examples", default: "Examples", ending: ":")
     let Given = Language.current.localized(expression: "given", default: "Given", ending: " ")
     let When = Language.current.localized(expression: "when", default: "When", ending: " ")
     let Then = Language.current.localized(expression: "then", default: "Then", ending: " ")
     let And = Language.current.localized(expression: "and", default: "And", ending: " ")
+    let But = Language.current.localized(expression: "but", default: "But", ending: " ")
     let ExampleLine = Keyword(variants: ["|"])
 }
 

@@ -11,6 +11,7 @@ import Foundation
 private let whitespace = CharacterSet.whitespaces
 
 class ParseState {
+    var tags: [String]
     var name: String?
     var description: [String] = []
     var steps: [StepDescription]
@@ -22,8 +23,9 @@ class ParseState {
         self.init(name: nil)
     }
     
-    required init(name: String?, parsingBackground: Bool = false) {
+    required init(name: String?, parsingBackground: Bool = false, tags: [String] = []) {
         self.name = name
+        self.tags = tags
         steps = []
         self.parsingBackground = parsingBackground
     }
@@ -84,9 +86,9 @@ class ParseState {
                     )
                 )
             }
-            scenarios.append(NativeScenario(name, steps: self.steps, index: index))
+            scenarios.append(NativeScenario(name, steps: self.steps, index: index, tags: tags))
         } else {
-            scenarios.append(NativeScenarioOutline(name, steps: self.steps, examples: self.examples, index: index))
+            scenarios.append(NativeScenarioOutline(name, steps: self.steps, examples: self.examples, index: index, tags: tags))
         }
         
         self.name = nil

@@ -49,6 +49,19 @@ final class SanitySteps: StepDefiner {
             self.step("This is another step")
         }
         
+        // Example of a step that sets value in scenario context
+        step("This step should set state") {
+            self.test.scenarioContext["state"] = 1
+        }
+        
+        step("This step should read state as ([0-9]+)") { (stateValue: Int) in
+            XCTAssertEqual(self.test.scenarioContext["state"] as? Int, stateValue)
+        }
+
+        step("This step should not read state") {
+            XCTAssertNil(self.test.scenarioContext["state"])
+        }
+
         // This step is only called from another step
         step("This is another step") {
             XCTAssertTrue(true)
@@ -162,9 +175,21 @@ final class SanitySteps: StepDefiner {
                 XCTAssertEqual(match["name"], match[0])
                 XCTAssertEqual(match[1], "170")
             }
+
+            step("I have two users (?<user1>.+) and (?<user2>.+)") { (match: StepMatches<ExampleFeatures.Person>) in
+                XCTAssertNotNil(match["user1"])
+                XCTAssertNotNil(match["user2"])
+            }
         }
 
         step("This is unused step") {}
+        
+        step("I verify (.+) password( against (.+) username)?") { (matches: [String]) in
+            XCTAssertEqual(matches.first, "test")
+            if matches.count > 1 {
+                XCTAssertEqual(matches.last, "user")
+            }
+        }
 
         step("I know the following persons: (.+)") { (match: DataTable<[ExampleFeatures.Person]>) in
             XCTAssertTrue(match.values[0].name == "Alice" || match.values[1].name == "Bob")

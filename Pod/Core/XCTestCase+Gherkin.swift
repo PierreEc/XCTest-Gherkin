@@ -10,6 +10,10 @@ import Foundation
 import XCTest
 import WebKit
 
+#if canImport(XCTest_Gherkin_ObjC)
+import XCTest_Gherkin_ObjC
+#endif
+
 /**
 I wanted this to work with both KIFTestCase and UITestCase which meant extending
 UITestCase - a subclass wouldn't work with both of them.
@@ -19,6 +23,9 @@ This means that anytime I want to access my extra properties I just do `state.{p
 */
 class GherkinState: NSObject, XCTestObservation {
     var test: XCTestCase?
+    
+    // Arbitrary user data associated with the current test scenario
+    var scenarioContext: [String: MatchedStringRepresentable] = [:]
     
     // The list of all steps the system knows about
     var steps = Set<Step>()
@@ -68,6 +75,10 @@ class GherkinState: NSObject, XCTestObservation {
     }
 
     func testCaseDidFinish(_ testCase: XCTestCase) {
+        testCase.scenarioContext = [:]
+    }
+    
+    func testSuiteDidFinish(_ testSuite: XCTestSuite) {
         XCTestObservationCenter.shared.removeTestObserver(self)
     }
 
@@ -118,12 +129,16 @@ class GherkinState: NSObject, XCTestObservation {
         self.steps.printStepsDefinitions()
     }
     
-    func loadAllStepsIfNeeded() {
+    func loadAllStepsIfNeeded(_ mapStepDefiner: StepDefiner.Type? = nil) {
         guard self.steps.count == 0 else { return }
         
         // Create an instance of each step definer and call it's defineSteps method
-        allSubclassesOf(StepDefiner.self).forEach { subclass in
-            subclass.init(test: self.test!).defineSteps()
+        if mapStepDefiner == nil {
+            allSubclassesOf(StepDefiner.self).forEach { subclass in
+                subclass.init(test: self.test!).defineSteps()
+            }
+        } else {
+            mapStepDefiner!.init(test: self.test!).defineSteps()
         }
 
         UnusedStepsTracker.shared().setSteps(self.steps.map { String(reflecting: $0) })
@@ -157,6 +172,15 @@ public extension XCTestCase {
 
             return s as! GherkinState
         }
+    }
+    
+    /**
+     Current scenario context used to share the state between steps in a single scenario.
+     Note: Example values will override context values associated with the same key.
+     */
+    var scenarioContext: [String: MatchedStringRepresentable] {
+        get { return state.scenarioContext }
+        set { state.scenarioContext = newValue }
     }
     
     /**
@@ -215,6 +239,12 @@ public extension XCTestCase {
         self.performStep(expression + " \(DataTable(values()))", keyword: "And", file: file, line: line)
     }
 
+    /**
+     Run the step matching the specified expression
+     */
+    func But(_ expression: String, file: String = #file, line: Int = #line) {
+        self.performStep(expression, keyword: "But", file: file, line: line)
+    }
 }
 
 private var automaticScreenshotsBehaviour: AutomaticScreenshotsBehaviour = .none
@@ -289,12 +319,14 @@ extension XCTestCase {
         // Make sure that we have created our steps
         self.state.loadAllStepsIfNeeded()
 
+        var variables = scenarioContext
         // If we are in an example, transform the step to reflect the current example's value
         if let example = state.currentExample {
-            // For each field in the example, go through the step expression and replace the placeholders if needed
-            expression = expression.replacingExamplePlaceholders(example)
+            variables = scenarioContext.merging(example, uniquingKeysWith: { $1 })
         }
-
+        // For each variable go through the step expression and replace the placeholders if needed
+        expression = expression.replacingExamplePlaceholders(variables)
+        
         // Get the step and the matches inside it
         guard let (step, match) = self.state.gherkinStepsAndMatchesMatchingExpression(expression).first else {
             if !self.state.matchingGherkinStepExpressionFound(expression) && self.state.shouldPrintTemplateCodeForAllMissingSteps() {
