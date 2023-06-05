@@ -18,6 +18,7 @@ let package = Package(
             exclude: [
                 "Core/Background.swift",
                 "Core/ClassHelperMethods.swift",
+                "Core/DataTable.swift",
                 "Core/Example.swift",
                 "Core/LevenshteinDistance.swift",
                 "Core/MatchedStringRepresentable.swift",
@@ -27,6 +28,7 @@ let package = Package(
                 "Core/StringGherkinExtension.swift",
                 "Core/XCTestCase+Gherkin.swift",
                 "Native/Language.swift",
+                "Native/NativeDataTable.swift",
                 "Native/NativeExample.swift",
                 "Native/NativeFeature.swift",
                 "Native/NativeFeatureParser.swift",
@@ -62,6 +64,7 @@ let package = Package(
             sources: [
                 "Core/Background.swift",
                 "Core/ClassHelperMethods.swift",
+                "Core/DataTable.swift",
                 "Core/Example.swift",
                 "Core/LevenshteinDistance.swift",
                 "Core/MatchedStringRepresentable.swift",
@@ -71,6 +74,7 @@ let package = Package(
                 "Core/StringGherkinExtension.swift",
                 "Core/XCTestCase+Gherkin.swift",
                 "Native/Language.swift",
+                "Native/NativeDataTable.swift",
                 "Native/NativeExample.swift",
                 "Native/NativeFeature.swift",
                 "Native/NativeFeatureParser.swift",
