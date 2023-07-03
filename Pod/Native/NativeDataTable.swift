@@ -8,7 +8,11 @@
 import Foundation
 import XCTest
 
-extension String: Error {}
+extension String {
+    func toError() -> Error {
+        NSError(domain: self, code: -1)
+    }
+}
 
 public struct NativeDataTable<T: Collection> {
     public let values: T
@@ -79,11 +83,11 @@ extension StepDefiner {
         self.step(expression, file: file, line: line, f1: f1) { (values: [[String]]) throws -> [T] in
             let columns = Set(values.map({ $0.count }))
             guard columns.count == 1 && columns.first == 1 else {
-                throw "Table should contain single column"
+                throw "Table should contain single column".toError()
             }
             return try values.map {
                 guard let value = T(fromMatch: $0[0]) else {
-                    throw "Failed to convert \($0[0]) to \(T.self)"
+                    throw "Failed to convert \($0[0]) to \(T.self)".toError()
                 }
                 return value
             }
@@ -110,7 +114,7 @@ extension StepDefiner {
             return try values.map { row in
                 try row.map { (cell) -> T in
                     guard let value = T(fromMatch: cell) else {
-                        throw "Failed to convert \(cell) to \(T.self)"
+                        throw "Failed to convert \(cell) to \(T.self)".toError()
                     }
                     return value
                 }
@@ -146,7 +150,7 @@ extension StepDefiner {
                 let value = try row.enumerated().reduce(into: [String: T]()) { (values, cell) in
                     let title = titles[cell.offset]
                     guard let value = T(fromMatch: cell.element) else {
-                        throw "Failed to convert \(cell.element) to \(T.self)"
+                        throw "Failed to convert \(cell.element) to \(T.self)".toError()
                     }
                     values[title] = value
                 }
@@ -180,11 +184,11 @@ extension StepDefiner {
         self.step(expression, file: file, line: line, f1: f1) { (values: [[String]]) throws -> [String: T] in
             let columns = Set(values.map({ $0.count }))
             guard columns.count == 1 && columns.first == 2 else {
-                throw "Table should contain two columns"
+                throw "Table should contain two columns".toError()
             }
             return try values.reduce(into: [String: T]()) { (values, row) in
                 guard let value = T(fromMatch: row[1]) else {
-                    throw "Failed to convert \(row[1]) to \(T.self)"
+                    throw "Failed to convert \(row[1]) to \(T.self)".toError()
                 }
                 values[row[0]] = value
             }
@@ -217,7 +221,7 @@ extension StepDefiner {
             return try values.reduce(into: [String: [T]]()) { (values, row) in
                 values[row[0]] = try row.dropFirst().map { cell in
                     guard let value = T(fromMatch: cell) else {
-                        throw "Failed to convert \(cell) to \(T.self)"
+                        throw "Failed to convert \(cell) to \(T.self)".toError()
                     }
                     return value
                 }
@@ -255,7 +259,7 @@ extension StepDefiner {
                 values[row[0]] = try Array(row.dropFirst()).enumerated().reduce(into: [String: T](), { (values, cell) in
                     let title = titles[cell.offset]
                     guard let value = T(fromMatch: cell.element) else {
-                        throw "Failed to convert \(cell.element) to \(T.self)"
+                        throw "Failed to convert \(cell.element) to \(T.self)".toError()
                     }
                     values[title] = value
                 })
@@ -325,7 +329,7 @@ extension StepDefiner {
             let titles = Array(values.removeFirst().dropFirst())
             return try values.reduce(into: [U: T]()) { (values, row) in
                 guard let key = U(fromMatch: row[0]) else {
-                    throw "Failed to convert \(row[0]) to \(U.self)"
+                    throw "Failed to convert \(row[0]) to \(U.self)".toError()
                 }
                 let value = Array(row.dropFirst()).enumerated().reduce(into: [String: Any](), { (values, cell) in
                     let title = titles[cell.offset]
