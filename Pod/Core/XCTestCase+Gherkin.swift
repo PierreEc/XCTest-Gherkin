@@ -83,7 +83,7 @@ class GherkinState: NSObject, XCTestObservation {
     }
 
     func gherkinStepsAndMatchesMatchingExpression(_ expression: String) -> [(step: Step, match: NSTextCheckingResult)] {
-        let range = NSMakeRange(0, expression.count)
+        let range = NSRange(expression.startIndex..., in: expression)
 
         return self.steps.compactMap { step in
             step.regex.firstMatch(in: expression, options: [], range: range).map { (step: step, match: $0) }
